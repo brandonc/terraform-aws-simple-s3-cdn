@@ -19,7 +19,7 @@ resource "aws_s3_bucket" "origin" {
     "Effect":"Allow",
     "Principal": {"AWS": "${aws_cloudfront_origin_access_identity.access_id.iam_arn}"},
     "Action":["s3:GetObject"],
-    "Resource":["arn:aws:s3:::brandonc-public/*"]
+    "Resource":["arn:aws:s3:::${var.bucket_name}/*"]
   }]
 }
   EOF
