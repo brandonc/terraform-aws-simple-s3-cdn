@@ -2,7 +2,7 @@ provider "aws" {
   region = "us-west-2"
 }
 
-module "cdn-brandoncroft-com" {
+module "brandoncroftcdn-online" {
   source = "../../"
 
   bucket_name = "brandonc-cdn"

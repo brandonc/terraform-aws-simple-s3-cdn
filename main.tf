@@ -9,7 +9,6 @@ provider "aws" {
 
 resource "aws_s3_bucket" "origin" {
   bucket = var.bucket_name
-  acl = "public-read"
 
   policy = <<EOF
 {

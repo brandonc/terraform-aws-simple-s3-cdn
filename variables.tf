@@ -18,4 +18,8 @@ The CloudFront price_class (https://registry.terraform.io/providers/hashicorp/aw
   EOF
   type = string
   default = "PriceClass_100"
+  validation {
+    condition = contains(["PriceClass_All", "PriceClass_200", "PriceClass_100"], var.price_class)
+    error_message = "Value must be a valid PriceClass value. See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudfront_distribution#price_class for details."
+  }
 }
