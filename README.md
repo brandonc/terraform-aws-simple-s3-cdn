@@ -17,3 +17,11 @@ The S3 origin does not function as a website. The intent is to host cacheable as
 The CDN distribution is intended to be immutable, so all assets are given a very long cache ttl of 1 year. Query string parameters, cookies, and headers are ignored and not forwarded.
 
 By default, only US and Europe edge locations are selected for the CDN distribution. Change the price_class variable to "PriceClass_All" to enable global edge distribution
+
+## Running Tests
+
+Testing is achieved using test assertions built into a real config that uses the module. Just try to apply it:
+
+0. `terraform -chdir test init`
+1. `terraform -chdir test apply -auto-approve`
+2. `terraform -chdir test destroy -auto-approve`

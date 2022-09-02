@@ -1,8 +1,8 @@
-name: simple-s3-cdn Actions
+name: PR Actions
 on:
   pull_request:
-    branches-ignore:
-      - 'main'
+    branches:
+      - main
 jobs:
   lint_and_test:
     runs-on: ubuntu-latest
@@ -14,16 +14,60 @@ jobs:
         with:
           terraform_version: 1.2.8
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-      - name: fmt
+          terraform_wrapper: false
+      - uses: actions/checkout@v3
+      - name: terraform fmt check
         id: fmt
         run: terraform fmt -check
-      - name: init
+      - name: add empty cloud block
+        id: add-empty-cloud-block
+        run: printf "terraform {\n  cloud {}\n}\n" > cloud.tf
+      - name: terraform init
         id: init
-        run: terraform -chdir=test init
-      - name: apply
+        run: terraform init -input=false
+      - name: terraform apply
         id: apply
-        run: terraform -chdir=test apply -auto-approve
+        run: terraform apply -auto-approve -input=false
         continue-on-error: true
-      - name: destroy
+      - name: terraform destroy
         id: destroy
-        run: terraform -chdir=test destroy -auto-approve
+        run: terraform destroy -auto-approve -input=false
+        continue-on-error: true
+      - uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // 1. Retrieve existing bot comments for the PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            })
+            const botComment = comments.find(comment => {
+              return comment.user.type === 'Bot' && comment.body.includes('Lint + Test Results')
+            })
+
+            // 2. Prepare format of the comment
+            const output = `### Lint + Test Results
+            #### terraform fmt 🖌\`${{ steps.fmt.outcome }}\`
+            #### terraform init ⚙️\`${{ steps.init.outcome }}\`
+            #### terraform apply 🤖\`${{ steps.apply.outcome }}\`
+            #### terraform destroy 🚫\`${{ steps.destroy.outcome }}\``;
+
+            // 3. If we have a comment, update it, otherwise create a new one
+            if (botComment) {
+              github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: output
+              })
+            } else {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+              })
+            }
