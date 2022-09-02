@@ -1,3 +1,2 @@
-examples/**/.terraform*
-examples/**/*.tfstate*
-examples/**/brandonc_backend.tf
+**/.terraform*
+**/*.tfstate*
