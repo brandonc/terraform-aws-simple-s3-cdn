@@ -4,13 +4,26 @@ on:
     branches-ignore:
       - 'main'
 jobs:
-  lint:
+  lint_and_test:
     runs-on: ubuntu-latest
+    env:
+      TF_CLOUD_ORGANIZATION: bcroft
+      TF_WORKSPACE: test-simple-s3-cdn
     steps:
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.2.8
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-      - name: Terraform fmt
-          id: fmt
-          run: terraform fmt -check
+      - name: fmt
+        id: fmt
+        run: terraform fmt -check
+      - name: init
+        id: init
+        run: terraform -chdir=test init
+      - name: apply
+        id: apply
+        run: terraform -chdir=test apply -auto-approve
+        continue-on-error: true
+      - name: destroy
+        id: destroy
+        run: terraform -chdir=test destroy -auto-approve
