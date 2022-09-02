@@ -2,6 +2,8 @@ locals {
   s3_origin_id = "public-simple-S3-cdn-origin"
 }
 
+# This aliased provider for us-east-1 is required for a certificate, but you should configure
+# your config provider with the region of your choice
 provider "aws" {
   region = "us-east-1"
   alias = "us_east_1_provider"
@@ -11,12 +13,12 @@ resource "aws_s3_bucket" "origin" {
   bucket = var.bucket_name
 }
 
-resource "aws_s3_bucket_policy" "public_read_policy" {
+resource "aws_s3_bucket_policy" "cloudfront_policy" {
   bucket = aws_s3_bucket.origin.id
-  policy = data.aws_iam_policy_document.allow_public_read.json
+  policy = data.aws_iam_policy_document.allow_cloudfront_read.json
 }
 
-data "aws_iam_policy_document" "allow_public_read" {
+data "aws_iam_policy_document" "allow_cloudfront_read" {
   statement {
     principals {
       type        = "AWS"
@@ -132,4 +134,11 @@ resource "aws_acm_certificate_validation" "cert" {
   provider = aws.us_east_1_provider # required for certificates
   certificate_arn = aws_acm_certificate.cert.arn
   validation_record_fqdns = [for record in aws_route53_record.validation : record.fqdn]
+}
+
+## Refactors
+
+moved {
+  from = aws_s3_bucket_policy.public_read_policy
+  to   = aws_s3_bucket_policy.cloudfront_policy
 }
