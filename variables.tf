@@ -1,7 +1,7 @@
 variable "zone_depends_on" {
   description = "Propogate any dependency to reading the required Route53 zone"
-  type    = any
-  default = []
+  type        = any
+  default     = []
 }
 
 variable "bucket_name" {

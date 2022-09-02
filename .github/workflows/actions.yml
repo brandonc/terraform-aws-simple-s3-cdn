@@ -1,0 +1,16 @@
+name: simple-s3-cdn Actions
+on:
+  pull_request:
+    branches-ignore:
+      - 'main'
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.2.8
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      - name: Terraform fmt
+          id: fmt
+          run: terraform fmt -check
