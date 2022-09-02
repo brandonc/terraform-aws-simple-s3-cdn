@@ -9,19 +9,29 @@ provider "aws" {
 
 resource "aws_s3_bucket" "origin" {
   bucket = var.bucket_name
-
-  policy = <<EOF
-{
-  "Version":"2008-10-17",
-  "Statement":[{
-    "Sid":"AllowPublicRead",
-    "Effect":"Allow",
-    "Principal": {"AWS": "${aws_cloudfront_origin_access_identity.access_id.iam_arn}"},
-    "Action":["s3:GetObject"],
-    "Resource":["arn:aws:s3:::${var.bucket_name}/*"]
-  }]
 }
-  EOF
+
+resource "aws_s3_bucket_policy" "public_read_policy" {
+  bucket = aws_s3_bucket.origin.id
+  policy = data.aws_iam_policy_document.allow_public_read.json
+}
+
+data "aws_iam_policy_document" "allow_public_read" {
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = [aws_cloudfront_origin_access_identity.access_id.iam_arn]
+    }
+
+    actions = [
+      "s3:GetObject",
+    ]
+
+    resources = [
+      aws_s3_bucket.origin.arn,
+      "${aws_s3_bucket.origin.arn}/*",
+    ]
+  }
 }
 
 resource "aws_cloudfront_origin_access_identity" "access_id" {
@@ -85,7 +95,7 @@ resource "aws_acm_certificate" "cert" {
   }
 }
 
-resource "aws_route53_zone" "primary_zone" {
+data "aws_route53_zone" "primary_zone" {
   name = var.domain_name
 }
 
@@ -99,7 +109,7 @@ resource "aws_route53_record" "validation" {
   }
 
   allow_overwrite = true
-  zone_id = aws_route53_zone.primary_zone.id
+  zone_id = data.aws_route53_zone.primary_zone.zone_id
   name = each.value.name
   type = each.value.type
   records = [each.value.record]
@@ -109,7 +119,7 @@ resource "aws_route53_record" "validation" {
 resource "aws_route53_record" "dns" {
   name = var.domain_name
   type = "A"
-  zone_id = aws_route53_zone.primary_zone.id
+  zone_id = data.aws_route53_zone.primary_zone.zone_id
 
   alias {
     name = aws_cloudfront_distribution.cdn_distribution.domain_name

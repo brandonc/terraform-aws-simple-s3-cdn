@@ -4,7 +4,7 @@ variable "bucket_name" {
 }
 
 variable "domain_name" {
-  description = "The domain name of the CDN host. Subdomains are allowed. Example: corporatewebsiteassets.net"
+  description = "The domain name of the CDN host. Subdomains are allowed. Example: corporatewebsiteassets.net. Must already exist as a Route53 Zone."
   type = string
 }
 
