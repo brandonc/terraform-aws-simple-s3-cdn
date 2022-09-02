@@ -6,7 +6,7 @@ locals {
 # your config provider with the region of your choice
 provider "aws" {
   region = "us-east-1"
-  alias = "us_east_1_provider"
+  alias  = "us_east_1_provider"
 }
 
 resource "aws_s3_bucket" "origin" {
@@ -43,17 +43,17 @@ resource "aws_cloudfront_origin_access_identity" "access_id" {
 resource "aws_cloudfront_distribution" "cdn_distribution" {
   origin {
     domain_name = aws_s3_bucket.origin.bucket_regional_domain_name
-    origin_id = local.s3_origin_id
+    origin_id   = local.s3_origin_id
 
     s3_origin_config {
       origin_access_identity = aws_cloudfront_origin_access_identity.access_id.cloudfront_access_identity_path
     }
   }
 
-  enabled = true
+  enabled         = true
   is_ipv6_enabled = true
-  price_class = var.price_class
-  aliases = [var.domain_name]
+  price_class     = var.price_class
+  aliases         = [var.domain_name]
 
   restrictions {
     geo_restriction {
@@ -62,7 +62,7 @@ resource "aws_cloudfront_distribution" "cdn_distribution" {
   }
 
   default_cache_behavior {
-    allowed_methods = ["GET", "HEAD", "OPTIONS"]
+    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
     cached_methods   = ["GET", "HEAD"]
     target_origin_id = local.s3_origin_id
 
@@ -83,13 +83,13 @@ resource "aws_cloudfront_distribution" "cdn_distribution" {
 
   viewer_certificate {
     acm_certificate_arn = aws_acm_certificate.cert.arn
-    ssl_support_method = "sni-only"
+    ssl_support_method  = "sni-only"
   }
 }
 
 resource "aws_acm_certificate" "cert" {
-  provider = aws.us_east_1_provider # required for certificates
-  domain_name = var.domain_name
+  provider          = aws.us_east_1_provider # required for certificates
+  domain_name       = var.domain_name
   validation_method = "DNS"
 
   lifecycle {
@@ -111,28 +111,28 @@ resource "aws_route53_record" "validation" {
   }
 
   allow_overwrite = true
-  zone_id = data.aws_route53_zone.primary_zone.zone_id
-  name = each.value.name
-  type = each.value.type
-  records = [each.value.record]
-  ttl = 60
+  zone_id         = data.aws_route53_zone.primary_zone.zone_id
+  name            = each.value.name
+  type            = each.value.type
+  records         = [each.value.record]
+  ttl             = 60
 }
 
 resource "aws_route53_record" "dns" {
-  name = var.domain_name
-  type = "A"
+  name    = var.domain_name
+  type    = "A"
   zone_id = data.aws_route53_zone.primary_zone.zone_id
 
   alias {
-    name = aws_cloudfront_distribution.cdn_distribution.domain_name
-    zone_id = aws_cloudfront_distribution.cdn_distribution.hosted_zone_id
+    name                   = aws_cloudfront_distribution.cdn_distribution.domain_name
+    zone_id                = aws_cloudfront_distribution.cdn_distribution.hosted_zone_id
     evaluate_target_health = false
   }
 }
 
 resource "aws_acm_certificate_validation" "cert" {
-  provider = aws.us_east_1_provider # required for certificates
-  certificate_arn = aws_acm_certificate.cert.arn
+  provider                = aws.us_east_1_provider # required for certificates
+  certificate_arn         = aws_acm_certificate.cert.arn
   validation_record_fqdns = [for record in aws_route53_record.validation : record.fqdn]
 }
 

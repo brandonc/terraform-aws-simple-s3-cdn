@@ -5,5 +5,5 @@ output "s3_arn" {
 
 output "cloudfront_arn" {
   description = "ARN of the CloudFront distribution"
-  value       =  aws_cloudfront_distribution.cdn_distribution.arn
+  value       = aws_cloudfront_distribution.cdn_distribution.arn
 }
