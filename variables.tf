@@ -1,3 +1,9 @@
+variable "zone_depends_on" {
+  description = "Propogate any dependency to reading the required Route53 zone"
+  type    = any
+  default = []
+}
+
 variable "bucket_name" {
   description = "The name of the s3 bucket to create. Must be unique."
   type        = string

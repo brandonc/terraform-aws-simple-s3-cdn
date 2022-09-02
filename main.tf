@@ -85,6 +85,10 @@ resource "aws_cloudfront_distribution" "cdn_distribution" {
     acm_certificate_arn = aws_acm_certificate.cert.arn
     ssl_support_method  = "sni-only"
   }
+
+  depends_on = [
+    aws_acm_certificate_validation.cert
+  ]
 }
 
 resource "aws_acm_certificate" "cert" {
@@ -99,6 +103,7 @@ resource "aws_acm_certificate" "cert" {
 
 data "aws_route53_zone" "primary_zone" {
   name = var.domain_name
+  depends_on = [var.zone_depends_on]
 }
 
 resource "aws_route53_record" "validation" {
